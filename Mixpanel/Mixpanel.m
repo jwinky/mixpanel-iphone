@@ -569,8 +569,9 @@ static Mixpanel *sharedInstance = nil;
     }
 
     @synchronized(self) {
-        if ([self.delegate respondsToSelector:@selector(mixpanelWillFlush:)]) {
-            if (![self.delegate mixpanelWillFlush:self]) {
+        id<MixpanelDelegate> delegate = self.delegate;
+        if ([delegate respondsToSelector:@selector(mixpanelWillFlush:)]) {
+            if (![delegate mixpanelWillFlush:self]) {
                 MixpanelDebug(@"%@ delegate deferred flush", self);
                 return;
             }
@@ -1175,7 +1176,9 @@ static Mixpanel *sharedInstance = nil;
         NSMutableDictionary *r = [NSMutableDictionary dictionary];
         NSMutableDictionary *p = [NSMutableDictionary dictionary];
 
-        [r setObject:self.mixpanel.apiToken forKey:@"$token"];
+        Mixpanel *mixpanel = self.mixpanel;
+        
+        [r setObject:mixpanel.apiToken forKey:@"$token"];
 
         if (![r objectForKey:@"$time"]) {
             // milliseconds unix timestamp
@@ -1194,13 +1197,13 @@ static Mixpanel *sharedInstance = nil;
         if (self.distinctId) {
             [r setObject:self.distinctId forKey:@"$distinct_id"];
             MixpanelLog(@"%@ queueing people record: %@", self.mixpanel, r);
-            [self.mixpanel.peopleQueue addObject:r];
+            [mixpanel.peopleQueue addObject:r];
         } else {
             MixpanelLog(@"%@ queueing unidentified people record: %@", self.mixpanel, r);
             [self.unidentifiedQueue addObject:r];
         }
         if ([Mixpanel inBackground]) {
-            [self.mixpanel archivePeople];
+            [mixpanel archivePeople];
         }
     }
 }
