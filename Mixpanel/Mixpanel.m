@@ -289,6 +289,7 @@ static Mixpanel *sharedInstance = nil;
 
 + (void)assertPropertyTypes:(NSDictionary *)properties
 {
+#if !defined(NS_BLOCK_ASSERTIONS)
     for (id k in properties) {
         NSAssert([k isKindOfClass: [NSString class]], @"%@ property keys must be NSString. got: %@ %@", self, [k class], k);
         // would be convenient to do: id v = [properties objectForKey:k]; ..but, when the NSAssert's are stripped out in release, it becomes an unused variable error
@@ -301,6 +302,7 @@ static Mixpanel *sharedInstance = nil;
                  [[properties objectForKey:k] isKindOfClass:[NSURL class]],
                  @"%@ property values must be NSString, NSNumber, NSNull, NSArray, NSDictionary, NSDate or NSURL. got: %@ %@", self, [[properties objectForKey:k] class], [properties objectForKey:k]);
     }
+#endif
 }
 
 #pragma mark * Initializiation
@@ -1117,11 +1119,13 @@ static Mixpanel *sharedInstance = nil;
 
 - (void)increment:(NSDictionary *)properties
 {
+#if !defined(NS_BLOCK_ASSERTIONS)
     NSAssert(properties != nil, @"properties must not be nil");
     for (id v in [properties allValues]) {
         NSAssert([v isKindOfClass:[NSNumber class]],
                  @"%@ increment property values should be NSNumber. found: %@", self, v);
     }
+#endif
     [self addPeopleRecordToQueueWithAction:@"$add" andProperties:properties];
 }
 
